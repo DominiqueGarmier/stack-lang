@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TypeGuard
 
-from .expression import Expression, Literal, Lambda
-from .exceptions import InterpreterError
+from .expr import Expression, Literal, Lambda
+from .excs import InterpreterError
 
 
-def assert_literal(t: Expression) -> TypeGuard[Literal]:
+def is_literal(t: Expression) -> TypeGuard[Literal]:
     if not isinstance(t, Literal):
         raise InterpreterError(f"Expected literal, got {t}")
     return True
@@ -42,16 +42,20 @@ def op_APPLY(stack: list[Expression]) -> list[Expression]:
 def op_LOAD(stack: list[Expression], registry: dict[int, Expression]) -> None:
     a = stack.pop()
 
-    if assert_literal(a):
-        stack.append(registry[a.value])
+    assert is_literal(a)
+
+    val = registry.get(a.value)
+    if val is None:
+        return
+    stack.append(val)
 
 
 def op_STORE(stack: list[Expression], registry: dict[int, Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a):
-        registry[a.value] = b
+    assert is_literal(a)
+    registry[a.value] = b
 
 
 # binary operators
@@ -59,24 +63,24 @@ def op_ADD(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(a.value + b.value))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(a.value + b.value))
 
 
 def op_SUB(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(a.value - b.value))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(a.value - b.value))
 
 
 def op_MUL(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(a.value * b.value))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(a.value * b.value))
 
 
 # comparison operators
@@ -84,53 +88,53 @@ def op_EQUALS(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(a.value == b.value)))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(int(a.value == b.value)))
 
 
 def op_LESS_THAN(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(a.value < b.value)))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(int(a.value < b.value)))
 
 
 def op_GREATER_THAN(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(a.value > b.value)))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(int(a.value > b.value)))
 
 
 # boolean operators
 def op_NOT(stack: list[Expression]) -> None:
     a = stack.pop()
 
-    if assert_literal(a):
-        stack.append(Literal(int(not a.value)))
+    assert is_literal(a)
+    stack.append(Literal(int(not a.value)))
 
 
 def op_AND(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(a.value and b.value)))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(int(a.value and b.value)))
 
 
 def op_OR(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(a.value or b.value)))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(int(a.value or b.value)))
 
 
 def op_XOR(stack: list[Expression]) -> None:
     a = stack.pop()
     b = stack.pop()
 
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(bool(a.value) ^ bool(b.value))))
+    assert is_literal(a) and is_literal(b)
+    stack.append(Literal(int(bool(a.value) ^ bool(b.value))))

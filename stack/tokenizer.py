@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterable, TextIO
-from .exceptions import TokenizerError
+from .excs import TokenizerError
 
 
 class Token:

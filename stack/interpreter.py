@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Iterable
 
 from . import parser
-from .expression import Expression, Literal, Lambda
-from . import _ops
-from .exceptions import InterpreterError
+from .expr import Expression, Literal, Lambda
+from . import ops
+from .excs import InterpreterError
 
 
 def apply_token(
@@ -14,41 +14,41 @@ def apply_token(
     ret: list[Expression] = []
 
     if expr is parser.SWAP:
-        _ops.op_SWAP(stack)
+        ops.op_SWAP(stack)
     elif expr is parser.DROP:
-        _ops.op_DROP(stack)
+        ops.op_DROP(stack)
     elif expr is parser.DUP:
-        _ops.op_DUP(stack)
+        ops.op_DUP(stack)
     elif expr is parser.APPLY:
-        ret = _ops.op_APPLY(stack)
+        ret = ops.op_APPLY(stack)
 
     elif expr is parser.LOAD:
-        _ops.op_LOAD(stack, registry)
+        ops.op_LOAD(stack, registry)
     elif expr is parser.STORE:
-        _ops.op_STORE(stack, registry)
+        ops.op_STORE(stack, registry)
 
     elif expr is parser.ADD:
-        _ops.op_ADD(stack)
+        ops.op_ADD(stack)
     elif expr is parser.SUB:
-        _ops.op_SUB(stack)
+        ops.op_SUB(stack)
     elif expr is parser.MUL:
-        _ops.op_MUL(stack)
+        ops.op_MUL(stack)
 
     elif expr is parser.EQUALS:
-        _ops.op_EQUALS(stack)
+        ops.op_EQUALS(stack)
     elif expr is parser.LESS_THAN:
-        _ops.op_LESS_THAN(stack)
+        ops.op_LESS_THAN(stack)
     elif expr is parser.GREATER_THAN:
-        _ops.op_GREATER_THAN(stack)
+        ops.op_GREATER_THAN(stack)
 
     elif expr is parser.NOT:
-        _ops.op_NOT(stack)
+        ops.op_NOT(stack)
     elif expr is parser.AND:
-        _ops.op_AND(stack)
+        ops.op_AND(stack)
     elif expr is parser.OR:
-        _ops.op_OR(stack)
+        ops.op_OR(stack)
     elif expr is parser.XOR:
-        _ops.op_XOR(stack)
+        ops.op_XOR(stack)
 
     elif isinstance(expr, Literal):
         stack.append(expr)
@@ -60,32 +60,32 @@ def apply_token(
     return stack, registry, ret
 
 
-def interpret(exprs: Iterable[Expression], max_expr: int) -> list[Expression]:
-    expr_count: int = 0
+def interpret(
+    exprs: Iterable[Expression], max_counter: int | None = None
+) -> list[Expression]:
     iter_exprs = iter(exprs)
+    expression_stack: list[Expression] = []
 
-    exprs_stack: list[Expression] = []
     registry: dict[int, Expression] = {}
     stack: list[Expression] = []
-    while True:
+
+    counter: int = 0
+    while max_counter is None or counter < max_counter:
+        if max_counter is not None:
+            counter += 1
+
         try:
-            if not exprs_stack:
-                exprs_stack = [next(iter_exprs)]
+            if not expression_stack:
+                expression_stack = [next(iter_exprs)]
         except StopIteration:
             break
 
-        while exprs_stack:
+        expression = expression_stack.pop()
+        stack, registry, callback = apply_token(stack, registry, expression)
 
-            if expr_count > max_expr:
-                return stack
-
-            expr = exprs_stack.pop()
-            stack, registry, callback = apply_token(stack, registry, expr)
-            expr_count += 1
-
-            if callback:
-                callback = callback.copy()
-                callback.reverse()
-                exprs_stack.extend(callback)
+        if callback:
+            callback = callback.copy()
+            callback.reverse()
+            expression_stack.extend(callback)
 
     return stack

@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Iterable, Literal
 from .tokenizer import Token
 from . import tokenizer
-from .expression import Expression, Lambda, Literal
-from .exceptions import ParserError
+from .expr import Expression, Lambda, Literal
+from .excs import ParserError
 
 
 SWAP = Expression("SWAP")

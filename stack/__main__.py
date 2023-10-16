@@ -11,7 +11,7 @@ MAX_EXPR = 2048
 def main() -> int:
     tokens = tokenizer.tokenize(sys.stdin)
     exprs = parser.parse(tokens)
-    stack = interpreter.interpret(exprs, max_expr=MAX_EXPR)
+    stack = interpreter.interpret(exprs, max_counter=MAX_EXPR)
 
     print(" ".join(repr(expr) for expr in stack))
 
