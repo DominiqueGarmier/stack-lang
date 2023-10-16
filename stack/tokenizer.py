@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Iterable, TextIO
+from collections.abc import Iterable
+from typing import TextIO
+
 from .excs import TokenizerError
 
 
@@ -86,20 +88,20 @@ class Literal(Token):
         return f"<{self.name}: {self.value}>"
 
 
-def parse_token(s: str, l: int, t: int) -> Token:
+def parse_token(s: str, line_number: int, token_index: int) -> Token:
     s = s.upper()
     if s in TOKEN_MAP:
         return TOKEN_MAP[s]
     try:
         return Literal(int(s))
     except ValueError:
-        raise TokenizerError(f"{l}:{t} invalid token: {s}")
+        raise TokenizerError(f"{line_number}:{token_index} invalid token: {s}")
 
 
 def tokenize(s: TextIO) -> Iterable[Token]:
-    for l, line in enumerate(s):
+    for line_number, line in enumerate(s):
         line = line.split("#")[0]
-        for t, token in enumerate(line.split()):
+        for token_index, token in enumerate(line.split()):
             if not token:
                 continue
-            yield parse_token(token, l, t)
+            yield parse_token(token, line_number, token_index)

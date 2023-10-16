@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
-from . import parser
-from .expr import Expression, Literal, Lambda
 from . import ops
+from . import parser
 from .excs import InterpreterError
+from .expr import Expression
+from .expr import Lambda
+from .expr import Literal
 
 
 def apply_token(

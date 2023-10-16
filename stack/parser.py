@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from typing import Iterable, Literal
-from .tokenizer import Token
+from collections.abc import Iterable
+
 from . import tokenizer
-from .expr import Expression, Lambda, Literal
 from .excs import ParserError
+from .expr import Expression
+from .expr import Lambda
+from .expr import Literal
+from .tokenizer import Token
 
 
 SWAP = Expression("SWAP")
