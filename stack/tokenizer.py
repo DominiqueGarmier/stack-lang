@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterable, TextIO
-
-
-class TokenizerError(Exception):
-    pass
+from .exceptions import TokenizerError
 
 
 class Token:
@@ -16,13 +13,24 @@ class Token:
     def __repr__(self):
         return f"<{self.name}>"
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Token):
+            return NotImplemented
+        return self.name == other.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
+
 
 # keywords
-SWAP = Token("swap")
-DUP = Token("dup")
-DROP = Token("drop")
+SWAP = Token("SWAP")
+DUP = Token("DUP")
+DROP = Token("DROP")
+APPLY = Token("APPLY")
 
-# operators
+LOAD = Token("LOAD")
+STORE = Token("STORE")
+
 ADD = Token("+")
 SUB = Token("-")
 MUL = Token("*")
@@ -30,19 +38,40 @@ MUL = Token("*")
 EQUALS = Token("=")
 LESS_THAN = Token("<")
 GREATER_THAN = Token(">")
+
 NOT = Token("!")
+AND = Token("&")
+OR = Token("|")
+XOR = Token("^")
+
+L_BRACKET = Token("[")
+R_BRACKET = Token("]")
+
 
 TOKEN_MAP = {
-    "swap": SWAP,
-    "dup": DUP,
-    "drop": DROP,
+    "SWAP": SWAP,
+    "DUP": DUP,
+    "DROP": DROP,
+    "APPLY": APPLY,
+    # store/load
+    "LOAD": LOAD,
+    "STORE": STORE,
+    # binary operators
     "+": ADD,
     "-": SUB,
     "*": MUL,
+    # comparison operators
     "=": EQUALS,
     "<": LESS_THAN,
     ">": GREATER_THAN,
+    # boolean operators
     "!": NOT,
+    "&": AND,
+    "|": OR,
+    "^": XOR,
+    # brackets
+    "[": L_BRACKET,
+    "]": R_BRACKET,
 }
 
 
@@ -58,7 +87,7 @@ class Literal(Token):
 
 
 def parse_token(s: str, l: int, t: int) -> Token:
-    s = s.lower()
+    s = s.upper()
     if s in TOKEN_MAP:
         return TOKEN_MAP[s]
     try:

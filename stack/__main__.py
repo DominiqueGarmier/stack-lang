@@ -3,13 +3,17 @@ from __future__ import annotations
 import sys
 from . import tokenizer
 from . import interpreter
+from . import parser
+
+MAX_EXPR = 2048
 
 
 def main() -> int:
     tokens = tokenizer.tokenize(sys.stdin)
-    stack = interpreter.interpret(tokens)
-    for token in stack:
-        print(repr(token))
+    exprs = parser.parse(tokens)
+    stack = interpreter.interpret(exprs, max_expr=MAX_EXPR)
+
+    print(" ".join(repr(expr) for expr in stack))
 
     return 0
 

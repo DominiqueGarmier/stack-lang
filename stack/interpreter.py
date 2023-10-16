@@ -1,128 +1,91 @@
 from __future__ import annotations
-from re import A
 
-from typing import Iterable, TypeGuard
+from typing import Iterable
 
-from . import tokenizer
-from .tokenizer import Token, Literal
-
-
-class InterpreterError(Exception):
-    pass
-
-
-def assert_literal(t: Token) -> TypeGuard[Literal]:
-    if not isinstance(t, Literal):
-        raise InterpreterError(f"Expected literal, got {t}")
-    return True
-
-
-def _op_SWAP(stack: list[Token]) -> None:
-    a = stack.pop()
-    b = stack.pop()
-    stack.append(a)
-    stack.append(b)
-
-
-def _op_DUP(stack: list[Token]) -> None:
-    a = stack.pop()
-    stack.append(a)
-    stack.append(a)
-
-
-def _op_DROP(stack: list[Token]) -> None:
-    stack.pop()
-
-
-def _op_ADD(stack: list[Token]) -> None:
-    a = stack.pop()
-    b = stack.pop()
-
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(a.value + b.value))
-
-
-def _op_SUB(stack: list[Token]) -> None:
-    a = stack.pop()
-    b = stack.pop()
-
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(a.value - b.value))
-
-
-def _op_MUL(stack: list[Token]) -> None:
-    a = stack.pop()
-    b = stack.pop()
-
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(a.value * b.value))
-
-
-def _op_EQUALS(stack: list[Token]) -> None:
-    a = stack.pop()
-    b = stack.pop()
-
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(a.value == b.value)))
-
-
-def _op_LESS_THAN(stack: list[Token]) -> None:
-    a = stack.pop()
-    b = stack.pop()
-
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(a.value < b.value)))
-
-
-def _op_GREATER_THAN(stack: list[Token]) -> None:
-    a = stack.pop()
-    b = stack.pop()
-
-    if assert_literal(a) and assert_literal(b):
-        stack.append(Literal(int(a.value > b.value)))
-
-
-def _op_NOT(stack: list[Token]) -> None:
-    a = stack.pop()
-
-    if assert_literal(a):
-        stack.append(Literal(int(not a.value)))
+from . import parser
+from .expression import Expression, Literal, Lambda
+from . import _ops
+from .exceptions import InterpreterError
 
 
 def apply_token(
-    stack: list[tokenizer.Token], token: tokenizer.Token
-) -> list[tokenizer.Token]:
-    if token is tokenizer.SWAP:
-        _op_SWAP(stack)
-    elif token is tokenizer.DROP:
-        _op_DROP(stack)
-    elif token is tokenizer.DUP:
-        _op_DUP(stack)
-    elif token is tokenizer.ADD:
-        _op_ADD(stack)
-    elif token is tokenizer.SUB:
-        _op_SUB(stack)
-    elif token is tokenizer.MUL:
-        _op_MUL(stack)
-    elif token is tokenizer.EQUALS:
-        _op_EQUALS(stack)
-    elif token is tokenizer.LESS_THAN:
-        _op_LESS_THAN(stack)
-    elif token is tokenizer.GREATER_THAN:
-        _op_GREATER_THAN(stack)
-    elif token is tokenizer.NOT:
-        _op_NOT(stack)
-    elif isinstance(token, Literal):
-        stack.append(token)
+    stack: list[Expression], registry: dict[int, Expression], expr: Expression
+) -> tuple[list[Expression], dict[int, Expression], list[Expression]]:
+    ret: list[Expression] = []
+
+    if expr is parser.SWAP:
+        _ops.op_SWAP(stack)
+    elif expr is parser.DROP:
+        _ops.op_DROP(stack)
+    elif expr is parser.DUP:
+        _ops.op_DUP(stack)
+    elif expr is parser.APPLY:
+        ret = _ops.op_APPLY(stack)
+
+    elif expr is parser.LOAD:
+        _ops.op_LOAD(stack, registry)
+    elif expr is parser.STORE:
+        _ops.op_STORE(stack, registry)
+
+    elif expr is parser.ADD:
+        _ops.op_ADD(stack)
+    elif expr is parser.SUB:
+        _ops.op_SUB(stack)
+    elif expr is parser.MUL:
+        _ops.op_MUL(stack)
+
+    elif expr is parser.EQUALS:
+        _ops.op_EQUALS(stack)
+    elif expr is parser.LESS_THAN:
+        _ops.op_LESS_THAN(stack)
+    elif expr is parser.GREATER_THAN:
+        _ops.op_GREATER_THAN(stack)
+
+    elif expr is parser.NOT:
+        _ops.op_NOT(stack)
+    elif expr is parser.AND:
+        _ops.op_AND(stack)
+    elif expr is parser.OR:
+        _ops.op_OR(stack)
+    elif expr is parser.XOR:
+        _ops.op_XOR(stack)
+
+    elif isinstance(expr, Literal):
+        stack.append(expr)
+    elif isinstance(expr, Lambda):
+        stack.append(expr)
     else:
-        raise InterpreterError(f"Unknown token: {token}")
+        raise InterpreterError(f"Unknown expression: {expr}")
 
-    return stack
+    return stack, registry, ret
 
 
-def interpret(tokens: Iterable[tokenizer.Token]) -> list[tokenizer.Token]:
-    stack = []
-    for token in tokens:
-        stack = apply_token(stack, token)
+def interpret(exprs: Iterable[Expression], max_expr: int) -> list[Expression]:
+    expr_count: int = 0
+    iter_exprs = iter(exprs)
+
+    exprs_stack: list[Expression] = []
+    registry: dict[int, Expression] = {}
+    stack: list[Expression] = []
+    while True:
+        try:
+            if not exprs_stack:
+                exprs_stack = [next(iter_exprs)]
+        except StopIteration:
+            break
+
+        while exprs_stack:
+
+            if expr_count > max_expr:
+                return stack
+
+            expr = exprs_stack.pop()
+            stack, registry, callback = apply_token(stack, registry, expr)
+            expr_count += 1
+
+            if callback:
+                callback = callback.copy()
+                callback.reverse()
+                exprs_stack.extend(callback)
 
     return stack
