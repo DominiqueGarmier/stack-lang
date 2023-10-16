@@ -19,28 +19,6 @@ class Expression:
         return hash(self.name)
 
 
-SWAP = Expression("SWAP")
-DUP = Expression("DUP")
-DROP = Expression("DROP")
-APPLY = Expression("APPLY")
-
-LOAD = Expression("LOAD")
-STORE = Expression("STORE")
-
-ADD = Expression("+")
-SUB = Expression("-")
-MUL = Expression("*")
-
-EQUALS = Expression("=")
-LESS_THAN = Expression("<")
-GREATER_THAN = Expression(">")
-
-NOT = Expression("!")
-AND = Expression("&")
-OR = Expression("|")
-XOR = Expression("^")
-
-
 class Literal(Expression):
     name: str = "LITERAL"
     value: int
