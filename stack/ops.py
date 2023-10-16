@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TypeGuard
 
-from .excs import InterpreterError
-from .expr import Expression
-from .expr import Lambda
-from .expr import Literal
+from stack.excs import InterpreterError
+from stack.expr import Expression
+from stack.expr import Lambda
+from stack.expr import Literal
 
 
 def is_literal(t: Expression) -> TypeGuard[Literal]:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import TextIO
 
-from .excs import TokenizerError
+from stack.excs import TokenizerError
 
 
 class Token:

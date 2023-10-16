@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from . import ops
-from . import parser
-from .excs import InterpreterError
-from .expr import Expression
-from .expr import Lambda
-from .expr import Literal
+from stack import ops
+from stack import parser
+from stack.excs import InterpreterError
+from stack.expr import Expression
+from stack.expr import Lambda
+from stack.expr import Literal
 
 
 def apply_token(
