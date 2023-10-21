@@ -1,7 +1,7 @@
 1 1 STORE # counter
 1 2 STORE # last fib
 0 3 STORE # 2nd last fib
-19 4 STORE # N
+15 4 STORE # N
 
 [ 2 LOAD 3 LOAD + ] -1 STORE # compute new fib
 [ -1 LOAD APPLY 2 LOAD 3 STORE 2 STORE ] -2 STORE # load compute and store fib
